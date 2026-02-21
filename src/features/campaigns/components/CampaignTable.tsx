@@ -1,5 +1,5 @@
-import { useNavigate } from "react-router-dom";
 import { ArrowUpDown } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import type { Campaign } from "../types";
 import { StatusBadge } from "./StatusBadge";
 
@@ -9,6 +9,7 @@ interface CampaignTableProps {
   onSelectionChange: (ids: string[]) => void;
   sortField: keyof Campaign;
   onSort: (field: keyof Campaign) => void;
+  loading?: boolean;
 }
 
 export function CampaignTable({
@@ -68,9 +69,8 @@ export function CampaignTable({
             <tr
               key={campaign.id}
               onClick={() => navigate(`/campaigns/${campaign.id}`)}
-              className={`cursor-pointer border-b border-border last:border-0 hover:bg-accent/50 transition-colors ${
-                selectedIds.includes(campaign.id) ? "bg-accent/30" : ""
-              }`}
+              className={`cursor-pointer border-b border-border last:border-0 hover:bg-accent/50 transition-colors ${selectedIds.includes(campaign.id) ? "bg-accent/30" : ""
+                }`}
             >
               <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                 <input
