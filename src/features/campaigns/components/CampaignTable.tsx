@@ -1,7 +1,6 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowUpDown } from "lucide-react";
-import type { Campaign } from "@/data/placeholder";
+import type { Campaign } from "../types";
 import { StatusBadge } from "./StatusBadge";
 
 interface CampaignTableProps {
@@ -9,7 +8,6 @@ interface CampaignTableProps {
   selectedIds: string[];
   onSelectionChange: (ids: string[]) => void;
   sortField: keyof Campaign;
-  sortDirection: "asc" | "desc";
   onSort: (field: keyof Campaign) => void;
 }
 
@@ -18,7 +16,6 @@ export function CampaignTable({
   selectedIds,
   onSelectionChange,
   sortField,
-  sortDirection,
   onSort,
 }: CampaignTableProps) {
   const navigate = useNavigate();
