@@ -1,4 +1,4 @@
-import { LayoutDashboard, Megaphone, Briefcase, Settings, ChevronLeft, ChevronRight } from "lucide-react";
+import { LayoutDashboard, Megaphone, Briefcase, ChevronLeft, ChevronRight } from "lucide-react";
 import { NavLink } from "../components/NavLink";
 
 interface AppSidebarProps {
