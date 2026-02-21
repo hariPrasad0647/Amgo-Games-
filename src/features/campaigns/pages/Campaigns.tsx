@@ -80,7 +80,6 @@ export default function Campaigns() {
         selectedIds={selectedIds}
         onSelectionChange={setSelectedIds}
         sortField={sortField}
-        sortDirection={sortDirection}
         onSort={handleSort}
       />
 

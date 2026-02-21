@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { Campaign } from "@/data/placeholder";
+import type { Campaign } from "../types";
 
 interface OverviewTabProps {
   campaign: Campaign;

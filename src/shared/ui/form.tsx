@@ -1,12 +1,11 @@
 import * as React from "react";
-import * as LabelPrimitive from "@radix-ui/react-label";
+import type { ControllerProps, FieldPath, FieldValues } from "react-hook-form";
 import { Slot } from "@radix-ui/react-slot";
-import { Controller, ControllerProps, FieldPath, FieldValues, FormProvider, useFormContext } from "react-hook-form";
+import { Controller, useFormContext } from "react-hook-form";
 
-import { cn } from "@/shared/utils";
-import { Label } from "@/components/ui/label";
-
-const Form = FormProvider;
+import { cn } from "../utils";
+import { Label } from "@/shared/ui/label";
+import * as LabelPrimitive from "@radix-ui/react-label";
 
 type FormFieldContextValue<
   TFieldValues extends FieldValues = FieldValues,
@@ -126,4 +125,4 @@ const FormMessage = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<
 );
 FormMessage.displayName = "FormMessage";
 
-export { useFormField, Form, FormItem, FormLabel, FormControl, FormDescription, FormMessage, FormField };
+export { useFormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage, FormField };

@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
-import { campaigns } from "@/data/placeholder";
-import { StatusBadge } from "@/features/campaigns/components/StatusBadge";
-import { OverviewTab } from "@/features/campaigns/components/OverviewTab";
-import { AssetsTab } from "@/features/campaigns/components/AssetsTab";
-import { PerformanceTab } from "@/features/campaigns/components/PerformanceTab";
+
+import { StatusBadge } from "../components/StatusBadge";
+import { OverviewTab } from "../components/OverviewTab";
+import { AssetsTab } from "../components/AssetsTab";
+import { PerformanceTab } from "../components/PerformanceTab";
+import { campaignService } from "../services/campaign.service";
+import type { Campaign } from "../types";
 
 const tabs = ["Overview", "Assets", "Performance"] as const;
 type Tab = typeof tabs[number];
@@ -15,13 +17,50 @@ export default function CampaignDetail() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<Tab>("Overview");
 
-  const campaign = campaigns.find((c) => c.id === id);
+  const [campaign, setCampaign] = useState<Campaign | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  if (!campaign) {
+  useEffect(() => {
+    async function loadCampaign() {
+      if (!id) return;
+
+      try {
+        setLoading(true);
+        setError(null);
+
+        const result = await campaignService.getById(id);
+
+        if (!result) {
+          setError("Campaign not found");
+        } else {
+          setCampaign(result);
+        }
+      } catch {
+        setError("Failed to load campaign");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadCampaign();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <p className="text-sm text-muted-foreground">Loading campaign...</p>
+      </div>
+    );
+  }
+
+  if (error || !campaign) {
     return (
       <div className="flex h-64 items-center justify-center">
         <div className="text-center">
-          <p className="text-sm font-medium text-foreground">Campaign not found</p>
+          <p className="text-sm font-medium text-foreground">
+            {error ?? "Campaign not found"}
+          </p>
           <button
             onClick={() => navigate("/campaigns")}
             className="mt-2 text-xs text-primary hover:underline"
@@ -45,10 +84,15 @@ export default function CampaignDetail() {
         </button>
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="text-lg font-semibold text-foreground">{campaign.name}</h2>
+            <h2 className="text-lg font-semibold text-foreground">
+              {campaign.name}
+            </h2>
             <StatusBadge status={campaign.status} />
           </div>
-          <p className="text-xs text-muted-foreground">{campaign.id} · {campaign.type} · {campaign.startDate} → {campaign.endDate}</p>
+          <p className="text-xs text-muted-foreground">
+            {campaign.id} · {campaign.type} · {campaign.startDate} →{" "}
+            {campaign.endDate}
+          </p>
         </div>
       </div>
 
@@ -72,7 +116,9 @@ export default function CampaignDetail() {
       {/* Tab content */}
       {activeTab === "Overview" && <OverviewTab campaign={campaign} />}
       {activeTab === "Assets" && <AssetsTab />}
-      {activeTab === "Performance" && <PerformanceTab />}
+      {activeTab === "Performance" && (
+        <PerformanceTab campaignId={campaign.id} />
+      )}
     </div>
   );
 }

@@ -1,7 +1,12 @@
 import { useState } from "react";
-import type { CampaignStatus } from "@/data/placeholder";
+import type { CampaignStatus } from "../types";
 
-const statuses: CampaignStatus[] = ["Pending", "Processing", "Completed", "Failed"];
+const statuses: CampaignStatus[] = [
+  "pending",
+  "processing",
+  "completed",
+  "failed",
+];
 const types = ["Display", "Email", "Social", "Search", "Event", "Content"];
 
 interface FilterPanelProps {

@@ -1,5 +1,5 @@
 import { LayoutDashboard, Megaphone, Briefcase, Settings, ChevronLeft, ChevronRight } from "lucide-react";
-import { NavLink } from "@/shared/components/NavLink";
+import { NavLink } from "../components/NavLink";
 
 interface AppSidebarProps {
   collapsed: boolean;
@@ -10,7 +10,7 @@ const navItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Campaigns", url: "/campaigns", icon: Megaphone },
   { title: "Jobs", url: "/jobs", icon: Briefcase },
-  { title: "Settings", url: "/settings", icon: Settings },
+
 ];
 
 export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {

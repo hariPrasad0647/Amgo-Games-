@@ -103,7 +103,9 @@ export function ImpressionsTrendChart({ title, data }: ChartCardProps) {
                   fontSize: "12px",
                   boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
                 }}
-                formatter={(value: number) => [value.toLocaleString(), "Impressions"]}
+                formatter={(value) =>
+                  value ? [value.toLocaleString(), "Impressions"] : ["0", "Impressions"]
+                }
               />
               <Line
                 type="monotone"
