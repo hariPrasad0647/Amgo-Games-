@@ -1,11 +1,12 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { Skeleton } from "@/shared/ui/skeleton";
 import { ArrowLeft } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
-import { StatusBadge } from "../components/StatusBadge";
-import { OverviewTab } from "../components/OverviewTab";
 import { AssetsTab } from "../components/AssetsTab";
+import { OverviewTab } from "../components/OverviewTab";
 import { PerformanceTab } from "../components/PerformanceTab";
+import { StatusBadge } from "../components/StatusBadge";
 import { campaignService } from "../services/campaign.service";
 import type { Campaign } from "../types";
 
@@ -15,7 +16,11 @@ type Tab = typeof tabs[number];
 export default function CampaignDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<Tab>("Overview");
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const activeTab = (searchParams.get("tab") as Tab) ?? "Overview";
+  const isValidTab = tabs.includes(activeTab);
+  const currentTab = isValidTab ? activeTab : "Overview";
 
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState(true);
@@ -23,7 +28,11 @@ export default function CampaignDetail() {
 
   useEffect(() => {
     async function loadCampaign() {
-      if (!id) return;
+      if (!id) {
+        setError("Campaign ID is missing");
+        setLoading(false);
+        return;
+      }
 
       try {
         setLoading(true);
@@ -48,8 +57,26 @@ export default function CampaignDetail() {
 
   if (loading) {
     return (
-      <div className="flex h-64 items-center justify-center">
-        <p className="text-sm text-muted-foreground">Loading campaign...</p>
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <Skeleton className="h-8 w-8 rounded-md" />
+          <div className="space-y-2">
+            <Skeleton className="h-5 w-48" />
+            <Skeleton className="h-4 w-64" />
+          </div>
+        </div>
+
+        <div className="flex gap-1 border-b border-border">
+          {tabs.map((tab) => (
+            <Skeleton key={tab} className="h-8 w-24" />
+          ))}
+        </div>
+
+        <div className="space-y-4">
+          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-32 w-full" />
+        </div>
       </div>
     );
   }
@@ -72,6 +99,12 @@ export default function CampaignDetail() {
     );
   }
 
+  const handleTabChange = (tab: Tab) => {
+    const params = new URLSearchParams(searchParams);
+    params.set("tab", tab);
+    setSearchParams(params);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -90,8 +123,7 @@ export default function CampaignDetail() {
             <StatusBadge status={campaign.status} />
           </div>
           <p className="text-xs text-muted-foreground">
-            {campaign.id} · {campaign.type} · {campaign.startDate} →{" "}
-            {campaign.endDate}
+            {campaign.id} · {campaign.type} · {campaign.startDate} → {campaign.endDate}
           </p>
         </div>
       </div>
@@ -101,9 +133,9 @@ export default function CampaignDetail() {
         {tabs.map((tab) => (
           <button
             key={tab}
-            onClick={() => setActiveTab(tab)}
+            onClick={() => handleTabChange(tab)}
             className={`border-b-2 px-4 py-2 text-sm font-medium transition-colors ${
-              activeTab === tab
+              currentTab === tab
                 ? "border-primary text-foreground"
                 : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
@@ -114,9 +146,9 @@ export default function CampaignDetail() {
       </div>
 
       {/* Tab content */}
-      {activeTab === "Overview" && <OverviewTab campaign={campaign} />}
-      {activeTab === "Assets" && <AssetsTab />}
-      {activeTab === "Performance" && (
+      {currentTab === "Overview" && <OverviewTab campaign={campaign} />}
+      {currentTab === "Assets" && <AssetsTab />}
+      {currentTab === "Performance" && (
         <PerformanceTab campaignId={campaign.id} />
       )}
     </div>

@@ -7,7 +7,7 @@ export function simulateRequest<T>(
   data: T,
   options: SimulateOptions = {}
 ): Promise<T> {
-  const { delay = 800, failureRate = 0.15 } = options;
+  const { delay = 800, failureRate = 0 } = options;
 
   return new Promise((resolve, reject) => {
     setTimeout(() => {
