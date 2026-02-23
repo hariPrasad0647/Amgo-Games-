@@ -25,8 +25,8 @@ export function UserDropdown() {
       {open && (
         <div className="absolute right-0 top-10 z-50 w-48 rounded-lg border border-border bg-card py-1 shadow-lg">
           <div className="border-b border-border px-3 py-2">
-            <p className="text-sm font-medium text-foreground">Jane Doe</p>
-            <p className="text-xs text-muted-foreground">jane@acme.com</p>
+            <p className="text-sm font-medium text-foreground">Hari</p>
+            <p className="text-xs text-muted-foreground">hari@amgo.com</p>
           </div>
           {[
             { icon: User, label: "Profile" },
