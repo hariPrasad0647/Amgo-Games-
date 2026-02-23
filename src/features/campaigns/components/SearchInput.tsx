@@ -2,17 +2,30 @@ import { useState, useEffect } from "react";
 import { Search } from "lucide-react";
 
 interface SearchInputProps {
+  value: string;
   onSearch: (query: string) => void;
   placeholder?: string;
 }
 
-export function SearchInput({ onSearch, placeholder = "Search campaigns..." }: SearchInputProps) {
-  const [value, setValue] = useState("");
+export function SearchInput({
+  value,
+  onSearch,
+  placeholder = "Search campaigns..."
+}: SearchInputProps) {
+  const [internalValue, setInternalValue] = useState(value);
+
+  // Sync when URL changes
+  useEffect(() => {
+    setInternalValue(value);
+  }, [value]);
 
   useEffect(() => {
-    const timer = setTimeout(() => onSearch(value), 300);
+    const timer = setTimeout(() => {
+      onSearch(internalValue);
+    }, 300);
+
     return () => clearTimeout(timer);
-  }, [value, onSearch]);
+  }, [internalValue]);
 
   return (
     <div className="relative">
@@ -20,9 +33,9 @@ export function SearchInput({ onSearch, placeholder = "Search campaigns..." }: S
       <input
         type="text"
         placeholder={placeholder}
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        className="h-9 w-72 rounded-md border border-input bg-card pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 transition-shadow"
+        value={internalValue}
+        onChange={(e) => setInternalValue(e.target.value)}
+        className="h-9 w-72 rounded-md border border-input bg-card pl-9 pr-3 text-sm"
       />
     </div>
   );

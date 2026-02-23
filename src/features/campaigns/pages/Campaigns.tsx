@@ -4,7 +4,7 @@ import { FilterPanel } from "@/features/campaigns/components/FilterPanel";
 import { PaginationControls } from "@/features/campaigns/components/PaginationControls";
 import { SearchInput } from "@/features/campaigns/components/SearchInput";
 import { campaignService } from "@/features/campaigns/services/campaign.service";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 
 const PAGE_SIZE = 6;
@@ -13,7 +13,7 @@ export default function Campaigns() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [total, setTotal] = useState(0);
-const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -23,98 +23,133 @@ const [loading, setLoading] = useState(false);
   const pageParam = searchParams.get("page");
   const currentPage = pageParam ? Number(pageParam) : 1;
 
-  // Create a stable dependency key
-  const searchParamsKey = searchParams.toString();
+  useEffect(() => {
+    let cancelled = false;
 
-useEffect(() => {
-  let cancelled = false;
+    const statuses = searchParams.getAll("status") as CampaignStatus[];
+    const types = searchParams.getAll("type");
 
-  const statuses = searchParams.getAll("status") as CampaignStatus[];
-  const types = searchParams.getAll("type");
-
-  async function load() {
-    try {
-      // Show loading only if this is first load
-      if (campaigns.length === 0) {
+    async function load() {
+      try {
         setLoading(true);
-      }
 
-      const result = await campaignService.getAll({
-        page: currentPage,
-        pageSize: PAGE_SIZE,
-        filters: {
-          statuses,
-          types,
-          search,
-        },
-      });
+        const result = await campaignService.getAll({
+          page: currentPage,
+          pageSize: PAGE_SIZE,
+          filters: {
+            statuses,
+            types,
+            search,
+          },
+        });
 
-      if (cancelled) return;
+        if (cancelled) return;
 
-      setCampaigns(result.data);
-      setTotal(result.total);
-    } catch (err) {
-      console.error("Failed to load campaigns:", err);
-    } finally {
-      if (!cancelled) {
-        setLoading(false);
+        setCampaigns(result.data);
+        setTotal(result.total);
+      } catch (err) {
+        console.error("Failed to load campaigns:", err);
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     }
-  }
 
-  load();
+    load();
 
-  return () => {
-    cancelled = true;
+    return () => {
+      cancelled = true;
+    };
+  }, [searchParams]);   
+
+  const handleStatusChange = async (
+    id: string,
+    newStatus: CampaignStatus
+  ) => {
+    // Store previous state for rollback
+    const previous = campaigns;
+
+    // Optimistic update
+    setCampaigns(prev =>
+      prev.map(c =>
+        c.id === id ? { ...c, status: newStatus } : c
+      )
+    );
+
+    try {
+      await campaignService.updateStatus(id, newStatus);
+    } catch (error) {
+      console.error("Status update failed, rolling back", error);
+
+      // Rollback on failure
+      setCampaigns(previous);
+    }
   };
-}, [searchParamsKey]);
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
-  const handleSort = (field: keyof Campaign) => {
-    const params = new URLSearchParams(searchParams);
-    const currentSort = params.get("sort");
-    const currentDir = params.get("dir");
+  const handleSort = useCallback((field: keyof Campaign) => {
+   
 
-    if (currentSort === field) {
-      params.set("dir", currentDir === "asc" ? "desc" : "asc");
-    } else {
-      params.set("sort", field);
-      params.set("dir", "asc");
-    }
+    setSearchParams(prev => {
+      const params = new URLSearchParams(prev);
 
-    params.set("page", "1");
-    setSearchParams(params);
-  };
+      const currentSort = params.get("sort");
+      const currentDir = params.get("dir");
 
-  const handleFilterChange = (f: {
+      if (currentSort === field) {
+        params.set("dir", currentDir === "asc" ? "desc" : "asc");
+      } else {
+        params.set("sort", field);
+        params.set("dir", "asc");
+      }
+
+      params.set("page", "1");
+
+      return params;
+    });
+  }, [setSearchParams]);
+
+  const handleFilterChange = useCallback((f: {
     statuses: CampaignStatus[];
     types: string[];
   }) => {
-    const params = new URLSearchParams(searchParams);
+    console.log("🔥 handleFilterChange triggered");
 
-    params.delete("status");
-    params.delete("type");
+    setSearchParams(prev => {
+      const params = new URLSearchParams(prev);
 
-    f.statuses.forEach((s) => params.append("status", s));
-    f.types.forEach((t) => params.append("type", t));
+      params.delete("status");
+      params.delete("type");
 
-    params.set("page", "1");
-    setSearchParams(params);
-  };
+      f.statuses.forEach(s => params.append("status", s));
+      f.types.forEach(t => params.append("type", t));
 
-  const handleSearch = (q: string) => {
-    const params = new URLSearchParams(searchParams);
-    if (q) params.set("search", q);
-    else params.delete("search");
-    params.set("page", "1");
-    setSearchParams(params);
-  };
+      params.set("page", "1");
+
+      return params;
+    });
+  }, [setSearchParams]);
+
+  const handleSearch = useCallback((q: string) => {
+  
+    setSearchParams(prev => {
+      const params = new URLSearchParams(prev);
+      if (q) params.set("search", q);
+      else params.delete("search");
+      params.set("page", "1");
+      return params;
+    });
+  }, [setSearchParams]);
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <SearchInput onSearch={handleSearch} />
+        <SearchInput
+          value={search}
+          onSearch={handleSearch}
+        />
         {selectedIds.length > 0 && (
           <span className="text-sm text-muted-foreground">
             {selectedIds.length} selected
@@ -131,8 +166,8 @@ useEffect(() => {
         sortField={sortField}
         onSort={handleSort}
         loading={loading}
+        onStatusChange={handleStatusChange}
       />
-
       <PaginationControls
         currentPage={currentPage}
         totalPages={totalPages}
