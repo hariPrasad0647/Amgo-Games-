@@ -23,7 +23,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
       <div className="flex h-14 items-center justify-between border-b border-border px-4">
         {!collapsed && (
           <span className="text-sm font-semibold tracking-tight text-foreground">
-            Acme Inc
+            AMGO Games
           </span>
         )}
         <button
