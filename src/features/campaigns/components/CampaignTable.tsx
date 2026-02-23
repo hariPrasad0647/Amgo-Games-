@@ -1,7 +1,7 @@
 import { ArrowUpDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { Campaign } from "../types";
-import { StatusBadge } from "./StatusBadge";
+
 
 interface CampaignTableProps {
   campaigns: Campaign[];
@@ -10,14 +10,15 @@ interface CampaignTableProps {
   sortField: keyof Campaign;
   onSort: (field: keyof Campaign) => void;
   loading?: boolean;
+  onStatusChange?: (id: string, status: Campaign["status"]) => void;
 }
-
 export function CampaignTable({
   campaigns,
   selectedIds,
   onSelectionChange,
   sortField,
   onSort,
+  onStatusChange,
 }: CampaignTableProps) {
   const navigate = useNavigate();
 
@@ -81,7 +82,23 @@ export function CampaignTable({
                 />
               </td>
               <td className="px-4 py-3 font-medium text-foreground">{campaign.name}</td>
-              <td className="px-4 py-3"><StatusBadge status={campaign.status} /></td>
+              <td
+                className="px-4 py-3"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <select
+                  value={campaign.status}
+                  onChange={(e) =>
+                    onStatusChange?.(campaign.id, e.target.value as Campaign["status"])
+                  }
+                  className="rounded-md border border-border bg-card px-2 py-1 text-sm"
+                >
+                  <option value="pending">pending</option>
+                  <option value="processing">processing</option>
+                  <option value="completed">completed</option>
+                  <option value="failed">failed</option>
+                </select>
+              </td>
               <td className="px-4 py-3 text-muted-foreground">{campaign.type}</td>
               <td className="px-4 py-3 text-muted-foreground">{campaign.startDate}</td>
               <td className="px-4 py-3 text-muted-foreground">{campaign.budget}</td>
